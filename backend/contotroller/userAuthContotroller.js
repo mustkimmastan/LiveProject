@@ -18,13 +18,28 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
 
-    // const userExists = await User.findOne({ email })
-    // if (userExists) {
-    //     res.status(400)
-    //     throw new Error("user already exists");
-    // }
-    
+    const userExists = await User.findOne({ email })
+    if (userExists) {
+        res.status(400)
+        throw new Error("user already exists");
+    }
+    const data = await User.create({
+        name ,
+        email ,
+        password
+    })
 
+    if(data){
+        res.status(201).json({
+            _id:data.id,
+            name: data.name,
+            email:data.email,
+            password:data.password
+        })
+    }else{
+        res.status(400)
+        throw new Error('data is already exits')
+    }
 })
 
 // dis LoginUser new users
@@ -33,7 +48,20 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const LoginUser = asyncHandler(async (req, res) => {
     // console.log('dsdsds====>'.req.text);
-    res.json({ message: `Login User` })
+    const {name,email,password} = req.body
+    const user = await User.findOne({email})
+    if(user && (bcrypt.compare(password,user.password))){
+        res.json({
+            _id:user.id,
+            name:user.name,
+            email:user.email,
+            token:generateToken(user._id)
+        })
+    }   else{
+        res.status(400)
+        throw new Error('Invaild credentials')
+    }
+    // res.json({ message: `Login User` })
 }
 )
 
@@ -45,6 +73,12 @@ const GetMEUser = asyncHandler(async (req, res) => {
     // console.log('dsdsds====>'.req.text);
     res.json({ message: `GetMe User` })
 })
+
+const generateToken = (id) =>{
+    return jwt.sign({id},process.env.JWT_SECRET,{
+        expiresIn: '30d',
+    })
+}
 
 
 module.exports = {

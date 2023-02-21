@@ -21,17 +21,18 @@ const getprodect= asyncHandlar (async(req,res)=>{
 
 const setprodect= asyncHandlar (async(req,res)=>{
     
-// const {title,  dis , price , quentity} = req.body; 
-// if(!title && !dis && !price && !quentity) {
-//     res.status(400).json({message : "Please add a All Fileds"})
-// }
+const {title,  dis , price , quentity,images} = req.body; 
+if(!title && !dis && !price && !quentity && !images) {
+    res.status(400).json({message : "Please add a All Fileds"})
+}
     console.log("=======>",req.body);  
     let result = await user.create(
         {
             title:req.body.title ,
             dis:req.body.dis,
             price:req.body.price,
-            quentity:req.body.quentity
+            quentity:req.body.quentity,
+            images:req.body.images
         })
     res.status(200).json(result)
     console.log("===>",result);
