@@ -1,8 +1,6 @@
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs');
 const mongodb = require('mongodb')
-
-
-
-
 const experss = require ('express')
 const app = experss();
 app.use(experss.json());
@@ -11,7 +9,6 @@ const asyncHandlar = require('express-async-handler');
 const user = require('../Model/prodectModel');
 
 // const { route } = require('../routes/prodectRoutes');
-
 
 const getprodect= asyncHandlar (async(req,res)=>{
     let data = await user.find();
@@ -28,15 +25,27 @@ if(!title && !dis && !price && !quentity && !images) {
     console.log("=======>",req.body);  
     let result = await user.create(
         {
-            title:req.body.title ,
-            dis:req.body.dis,
-            price:req.body.price,
-            quentity:req.body.quentity,
-            images:req.body.images
+            title,
+            dis,
+            price,
+            quentity,
+            images,
+            
         })
-    res.status(200).json(result)
-    console.log("===>",result);
+
+res.status(200).json(
+          {
+                 title,
+                   dis,
+                    price,
+                     quentity,
+                      images,
+                        token:generateToken(user._id)
+        }
+    )
+    // console.log("===>",result);
 })
+
 
 const updateprodect= asyncHandlar(async(req,res)=>{
     // let data = await db();
@@ -46,13 +55,17 @@ const updateprodect= asyncHandlar(async(req,res)=>{
         res.status(400)
         res.send('User not found')
     }
-    const update = await user.findByIdAndUpdate(req.params._id, req.body,{
-        new : true
-    })
-    console.log("=====>",updateprodect);
-    
+    if(generateToken){
+        const update = await user.findByIdAndUpdate(req.params._id, req.body,{
+            new : true
+        })
+        console.log("=====>",updateprodect);
+    }
+
     res.status(200).json({message: `update data ${req.params._id}`})
 })
+
+
 
 const deleteprodect= asyncHandlar (async(req,res)=>{
     let findId = await user.findById(req.params._id) 
@@ -60,9 +73,19 @@ const deleteprodect= asyncHandlar (async(req,res)=>{
         res.status(400);
         res.send('Use not found')
     }
-    await findId.remove();
+    if(generateToken){
+        await findId.remove()  
+    } 
+    
     res.status(200).json({message:`delete data ${req.params._id}`});
 })
+
+
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: '30d',
+    })
+}
 
 module.exports={
     getprodect,
